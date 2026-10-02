@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tokio & Async Rust Concepts</title>
+    <style>
+        :root {
+            --bg: #141619;
+            --card-bg: #1d2127;
+            --text: #f9dad0ff; /* almond-silk */
+            --text-muted: #818aa3ff; /* lavender-grey */
+            --accent: #a491d3ff; /* bright-lavender */
+            --code-bg: #0d0f12;
+            --border: #2a303c;
+            --highlight: #c5dca0ff; /* tea-green */
+            --highlight-2: #f5f2b8ff; /* lemon-chiffon */
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            margin: 0;
+            padding: 2.5rem 1rem;
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+        header {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .header-content h1 {
+            font-size: 2.2rem;
+            margin: 0 0 0.5rem 0;
+            color: var(--accent);
+            letter-spacing: -0.025em;
+        }
+        .header-content p.subtitle {
+            color: var(--text-muted);
+            margin: 0;
+            font-size: 1.15rem;
+        }
+        /* Navigation Bar */
+        nav.nav-bar {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.25rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            font-size: 0.95rem;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+        .repo-link {
+            font-size: 0.85rem;
+            background-color: rgba(164, 145, 211, 0.1);
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid rgba(164, 145, 211, 0.25);
+        }
+        .concept-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            scroll-margin-top: 2rem;
+        }
+        h2 {
+            margin-top: 0;
+            font-size: 1.4rem;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        h3 {
+            font-size: 1.05rem;
+            color: var(--highlight-2);
+            margin: 1.2rem 0 0.4rem 0;
+        }
+        p {
+            color: var(--text);
+            margin: 0.75rem 0;
+        }
+        ul {
+            color: var(--text-muted);
+            margin: 0.5rem 0 1rem 1.25rem;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 0.35rem;
+        }
+        strong {
+            color: var(--highlight-2);
+        }
+        pre {
+            background-color: var(--code-bg);
+            border: 1px solid var(--border);
+            padding: 1.25rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            color: var(--highlight-2);
+            margin: 1rem 0;
+        }
+        code {
+            color: var(--highlight);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.92em;
+        }
+        pre code .comment {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        .badge {
+            display: inline-block;
+            background-color: rgba(164, 145, 211, 0.15);
+            color: var(--accent);
+            font-size: 0.8rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(164, 145, 211, 0.3);
+            margin-bottom: 0.75rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border);
+            padding-top: 1.5rem;
+        }
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>Tokio & Async Rust Lab</h1>
+                <p class="subtitle">Comprehensive conceptual reference notes and code patterns for asynchronous Rust with Tokio.</p>
+            </div>
+        </header>
+
+        <!-- Navigation Bar -->
+        <nav class="nav-bar">
+            <ul class="nav-links">
+                <li><a href="#concept-1">1. Runtime Engine</a></li>
+                <li><a href="#concept-2">2. Spawning Tasks</a></li>
+                <li><a href="#concept-3">3. Timers</a></li>
+                <li><a href="#concept-4">4. Channels</a></li>
+                <li><a href="#concept-5">5. Joining Futures</a></li>
+            </ul>
+            <a href="https://github.com" target="_blank" class="repo-link">GitHub Repo &rarr;</a>
+        </nav>
+
+        <!-- Concept 1 -->
+        <section id="concept-1" class="concept-card">
+            <div class="badge">tokio-runtime</div>
+            <h2>1. The Runtime Engine</h2>
+            <p>Because Rust does not feature a built-in asynchronous runtime in its standard library, an external executor is required to drive <code>async</code> code and <code>.await</code> expressions to completion.</p>
+            
+            <h3>Key Concepts</h3>
+            <ul>
+                <li><strong>The Multi-Threaded Work-Stealing Executor:</strong> <code>#[tokio::main]</code> bootstraps a multi-threaded Tokio runtime that manages worker threads across CPU cores.</li>
+                <li><strong>Non-Blocking I/O:</strong> Instead of blocking OS threads when waiting for disk or network operations, Tokio parks the task and switches execution to ready work.</li>
+                <li><strong>Async / Await Model:</strong> Futures are lazy in Rust; they do nothing until polled or awaited on the runtime.</li>
+            </ul>
+
+            <h3>Code Pattern</h3>
+            <pre><code>#[tokio::main]
+async fn main() {
+    <span class="comment">// Bootstrap the Tokio runtime and await async work</span>
+    async_hello().await;
+}
+
+async fn async_hello() {
+    println!("Hello from an asynchronous function driven by Tokio!");
+}</code></pre>
+        </section>
+
+        <!-- Concept 2 -->
+        <section id="concept-2" class="concept-card">
+            <div class="badge">tokio::spawn</div>
+            <h2>2. Spawning Tasks (`tokio::spawn`)</h2>
+            <p>Submitting background tasks concurrently without blocking the main flow of execution using lightweight green tasks.</p>
+
+            <h3>Key Concepts</h3>
+            <ul>
+                <li><strong>Green Tasks vs OS Threads:</strong> <code>tokio::spawn</code> creates a lightweight task managed inside the Tokio worker pool rather than spawning heavy OS threads.</li>
+                <li><strong>Lifetime & Send Bounds:</strong> Tasks spawned with <code>tokio::spawn</code> must own their data or have a `'static` lifetime and implement <code>Send</code>.</li>
+                <li><strong>JoinHandle:</strong> A future representing task completion. Awaiting the handle yields the return value of the spawned task.</li>
+            </ul>
+
+            <h3>Code Pattern</h3>
+            <pre><code>#[tokio::main]
+async fn main() {
+    <span class="comment">// Spawn a background task</span>
+    let handle = tokio::spawn(async {
+        println!("Background task started...");
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+        "Task completed!"
+    });
+
+    <span class="comment">// Await task completion and retrieve result</span>
+    let result = handle.await.unwrap();
+    println!("Main received: {result}");
+}</code></pre>
+        </section>
+
+        <!-- Concept 3 -->
+        <section id="concept-3" class="concept-card">
+            <div class="badge">tokio::time</div>
+            <h2>3. Asynchronous Timers (`tokio::time`)</h2>
+            <p>Managing timeouts, delays, and scheduling in asynchronous workflows without freezing runtime worker threads.</p>
+
+            <h3>Key Concepts</h3>
+            <ul>
+                <li><strong>Never Use Blocking Sleep:</strong> <code>std::thread::sleep</code> blocks the underlying OS thread, freezing the Tokio worker. Always use <code>tokio::time::sleep</code>.</li>
+                <li><strong>Async Sleep:</strong> Suspends the current task asynchronously for the specified duration, yielding the worker thread to other ready tasks.</li>
+                <li><strong>Timeouts:</strong> Wrap any future with <code>tokio::time::timeout</code> to enforce strict time bounds on async operations.</li>
+            </ul>
+
+            <h3>Code Pattern</h3>
+            <pre><code>use tokio::time::{sleep, timeout, Duration};
+
+async fn slow_operation() -> &'static str {
+    sleep(Duration::from_millis(200)).await;
+    "Success"
+}
+
+#[tokio::main]
+async fn main() {
+    <span class="comment">// Enforce a timeout of 100ms on a 200ms operation</span>
+    let res = timeout(Duration::from_millis(100), slow_operation()).await;
+    
+    match res {
+        Ok(val) => println!("Operation finished: {val}"),
+        Err(_) => println!("Operation timed out!"),
+    }
+}</code></pre>
+        </section>
+
+        <!-- Concept 4 -->
+        <section id="concept-4" class="concept-card">
+            <div class="badge">tokio::sync</div>
+            <h2>4. Task Synchronization & Channels (`tokio::sync`)</h2>
+            <p>Communicating safely between concurrent asynchronous tasks without shared mutable state.</p>
+
+            <h3>Key Concepts</h3>
+            <ul>
+                <li><strong>MPSC Channel (<code>tokio::sync::mpsc</code>):</strong> Multi-producer, single-consumer channel enabling multiple tasks to stream messages to a single receiver.</li>
+                <li><strong>Oneshot Channel (<code>tokio::sync::oneshot</code>):</strong> Transfers a single value from one sender to one receiver, ideal for request-response patterns.</li>
+                <li><strong>Channel Closing:</strong> Dropping all transmitter handles causes <code>rx.recv()</code> to return <code>None</code>, terminating message loops cleanly.</li>
+            </ul>
+
+            <h3>Code Pattern</h3>
+            <pre><code>use tokio::sync::mpsc;
+
+#[tokio::main]
+async fn main() {
+    let (tx, mut rx) = mpsc::channel(32);
+
+    let tx_clone = tx.clone();
+    tokio::spawn(async move {
+        tx_clone.send("Hello from producer").await.unwrap();
+    });
+
+    drop(tx);
+
+    while let Some(msg) = rx.recv().await {
+        println!("Received: {msg}");
+    }
+}</code></pre>
+        </section>
+
+        <!-- Concept 5 -->
+        <section id="concept-5" class="concept-card">
+            <div class="badge">tokio::join</div>
+            <h2>5. Joining Multiple Futures (`tokio::join!`)</h2>
+            <p>Running multiple independent asynchronous operations concurrently on the current task and combining their results.</p>
+
+            <h3>Key Concepts</h3>
+            <ul>
+                <li><strong>Concurrent Execution:</strong> <code>tokio::join!</code> polls multiple futures concurrently on the same task without needing separate spawns.</li>
+                <li><strong>Tuple Return Value:</strong> Returns a tuple containing the resolved output of each future once all of them complete.</li>
+                <li><strong>All-Or-None Completion:</strong> Execution blocks on the <code>join!</code> macro until every provided future has resolved.</li>
+            </ul>
+
+            <h3>Code Pattern</h3>
+            <pre><code>async fn fetch_user() -> &'static str {
+    "Alice"
+}
+
+async fn fetch_score() -> u32 {
+    42
+}
+
+#[tokio::main]
+async fn main() {
+    <span class="comment">// Run both futures concurrently and retrieve both results</span>
+    let (user, score) = tokio::join!(fetch_user(), fetch_score());
+    
+    println!("User: {user}, Score: {score}");
+}</code></pre>
+        </section>
+
+        <footer>
+            <p>Tokio & Async Rust Lab &bull; Hosted on GitHub Pages</p>
+        </footer>
+    </div>
+</body>
+</html>
