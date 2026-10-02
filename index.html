@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tokio & Async Rust Concepts</title>
+    <title>Tokio & Async Rust Lab</title>
     <style>
         :root {
             --bg: #141619;
@@ -49,7 +49,7 @@
             margin: 0;
             font-size: 1.15rem;
         }
-        /* Navigation Bar */
+        /* Navigation Bar / Tabs */
         nav.nav-bar {
             background-color: var(--card-bg);
             border: 1px solid var(--border);
@@ -65,21 +65,32 @@
         }
         .nav-links {
             display: flex;
-            gap: 1.25rem;
+            gap: 0.5rem;
             list-style: none;
             margin: 0;
             padding: 0;
             font-size: 0.95rem;
             flex-wrap: wrap;
         }
-        .nav-links a {
-            color: var(--text);
-            text-decoration: none;
-            transition: color 0.2s;
+        .nav-links button {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-family: inherit;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        .nav-links a:hover {
+        .nav-links button:hover {
+            color: var(--text);
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+        .nav-links button.active {
             color: var(--accent);
-            text-decoration: underline;
+            background-color: rgba(164, 145, 211, 0.12);
+            border-color: rgba(164, 145, 211, 0.3);
         }
         .repo-link {
             font-size: 0.85rem;
@@ -87,6 +98,18 @@
             padding: 0.3rem 0.75rem;
             border-radius: 6px;
             border: 1px solid rgba(164, 145, 211, 0.25);
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .repo-link:hover {
+            text-decoration: underline;
+        }
+        /* Subject Tab Content Panels */
+        .tab-panel {
+            display: none;
+        }
+        .tab-panel.active {
+            display: block;
         }
         .concept-card {
             background-color: var(--card-bg);
@@ -177,38 +200,38 @@
     <div class="container">
         <header>
             <div class="header-content">
-                <h1>Tokio & Async Rust Lab</h1>
-                <p class="subtitle">Comprehensive conceptual reference notes and code patterns for asynchronous Rust with Tokio.</p>
+                <h1>Async & Ecosystem Rust Lab</h1>
+                <p class="subtitle">Bite-sized conceptual reference notes and code patterns for Tokio, Reqwest, and Serde.</p>
             </div>
         </header>
 
-        <!-- Navigation Bar -->
+        <!-- Navigation Tabs Bar -->
         <nav class="nav-bar">
-            <ul class="nav-links">
-                <li><a href="#concept-1">1. Runtime Engine</a></li>
-                <li><a href="#concept-2">2. Spawning Tasks</a></li>
-                <li><a href="#concept-3">3. Timers</a></li>
-                <li><a href="#concept-4">4. Channels</a></li>
-                <li><a href="#concept-5">5. Joining Futures</a></li>
+            <ul class="nav-links" id="subject-tabs">
+                <li><button class="active" onclick="switchTab('tokio')">Tokio & Async</button></li>
+                <li><button onclick="switchTab('reqwest')">Reqwest</button></li>
+                <li><button onclick="switchTab('serde')">Serde</button></li>
             </ul>
             <a href="https://github.com" target="_blank" class="repo-link">GitHub Repo &rarr;</a>
         </nav>
 
-        <!-- Concept 1 -->
-        <section id="concept-1" class="concept-card">
-            <div class="badge">tokio-runtime</div>
-            <h2>1. The Runtime Engine</h2>
-            <p>Because Rust does not feature a built-in asynchronous runtime in its standard library, an external executor is required to drive <code>async</code> code and <code>.await</code> expressions to completion.</p>
-            
-            <h3>Key Concepts</h3>
-            <ul>
-                <li><strong>The Multi-Threaded Work-Stealing Executor:</strong> <code>#[tokio::main]</code> bootstraps a multi-threaded Tokio runtime that manages worker threads across CPU cores.</li>
-                <li><strong>Non-Blocking I/O:</strong> Instead of blocking OS threads when waiting for disk or network operations, Tokio parks the task and switches execution to ready work.</li>
-                <li><strong>Async / Await Model:</strong> Futures are lazy in Rust; they do nothing until polled or awaited on the runtime.</li>
-            </ul>
+        <!-- TAB 1: Tokio & Async -->
+        <div id="tab-tokio" class="tab-panel active">
+            <!-- Concept 1 -->
+            <section id="concept-1" class="concept-card">
+                <div class="badge">tokio-runtime</div>
+                <h2>1. The Runtime Engine</h2>
+                <p>Because Rust does not feature a built-in asynchronous runtime in its standard library, an external executor is required to drive <code>async</code> code and <code>.await</code> expressions to completion.</p>
+                
+                <h3>Key Concepts</h3>
+                <ul>
+                    <li><strong>The Multi-Threaded Work-Stealing Executor:</strong> <code>#[tokio::main]</code> bootstraps a multi-threaded Tokio runtime that manages worker threads across CPU cores.</li>
+                    <li><strong>Non-Blocking I/O:</strong> Instead of blocking OS threads when waiting for disk or network operations, Tokio parks the task and switches execution to ready work.</li>
+                    <li><strong>Async / Await Model:</strong> Futures are lazy in Rust; they do nothing until polled or awaited on the runtime.</li>
+                </ul>
 
-            <h3>Code Pattern</h3>
-            <pre><code>#[tokio::main]
+                <h3>Code Pattern</h3>
+                <pre><code>#[tokio::main]
 async fn main() {
     <span class="comment">// Bootstrap the Tokio runtime and await async work</span>
     async_hello().await;
@@ -217,23 +240,23 @@ async fn main() {
 async fn async_hello() {
     println!("Hello from an asynchronous function driven by Tokio!");
 }</code></pre>
-        </section>
+            </section>
 
-        <!-- Concept 2 -->
-        <section id="concept-2" class="concept-card">
-            <div class="badge">tokio::spawn</div>
-            <h2>2. Spawning Tasks (`tokio::spawn`)</h2>
-            <p>Submitting background tasks concurrently without blocking the main flow of execution using lightweight green tasks.</p>
+            <!-- Concept 2 -->
+            <section id="concept-2" class="concept-card">
+                <div class="badge">tokio::spawn</div>
+                <h2>2. Spawning Tasks (`tokio::spawn`)</h2>
+                <p>Submitting background tasks concurrently without blocking the main flow of execution using lightweight green tasks.</p>
 
-            <h3>Key Concepts</h3>
-            <ul>
-                <li><strong>Green Tasks vs OS Threads:</strong> <code>tokio::spawn</code> creates a lightweight task managed inside the Tokio worker pool rather than spawning heavy OS threads.</li>
-                <li><strong>Lifetime & Send Bounds:</strong> Tasks spawned with <code>tokio::spawn</code> must own their data or have a `'static` lifetime and implement <code>Send</code>.</li>
-                <li><strong>JoinHandle:</strong> A future representing task completion. Awaiting the handle yields the return value of the spawned task.</li>
-            </ul>
+                <h3>Key Concepts</h3>
+                <ul>
+                    <li><strong>Green Tasks vs OS Threads:</strong> <code>tokio::spawn</code> creates a lightweight task managed inside the Tokio worker pool rather than spawning heavy OS threads.</li>
+                    <li><strong>Lifetime & Send Bounds:</strong> Tasks spawned with <code>tokio::spawn</code> must own their data or have a `'static` lifetime and implement <code>Send</code>.</li>
+                    <li><strong>JoinHandle:</strong> A future representing task completion. Awaiting the handle yields the return value of the spawned task.</li>
+                </ul>
 
-            <h3>Code Pattern</h3>
-            <pre><code>#[tokio::main]
+                <h3>Code Pattern</h3>
+                <pre><code>#[tokio::main]
 async fn main() {
     <span class="comment">// Spawn a background task</span>
     let handle = tokio::spawn(async {
@@ -246,23 +269,23 @@ async fn main() {
     let result = handle.await.unwrap();
     println!("Main received: {result}");
 }</code></pre>
-        </section>
+            </section>
 
-        <!-- Concept 3 -->
-        <section id="concept-3" class="concept-card">
-            <div class="badge">tokio::time</div>
-            <h2>3. Asynchronous Timers (`tokio::time`)</h2>
-            <p>Managing timeouts, delays, and scheduling in asynchronous workflows without freezing runtime worker threads.</p>
+            <!-- Concept 3 -->
+            <section id="concept-3" class="concept-card">
+                <div class="badge">tokio::time</div>
+                <h2>3. Asynchronous Timers (`tokio::time`)</h2>
+                <p>Managing timeouts, delays, and scheduling in asynchronous workflows without freezing runtime worker threads.</p>
 
-            <h3>Key Concepts</h3>
-            <ul>
-                <li><strong>Never Use Blocking Sleep:</strong> <code>std::thread::sleep</code> blocks the underlying OS thread, freezing the Tokio worker. Always use <code>tokio::time::sleep</code>.</li>
-                <li><strong>Async Sleep:</strong> Suspends the current task asynchronously for the specified duration, yielding the worker thread to other ready tasks.</li>
-                <li><strong>Timeouts:</strong> Wrap any future with <code>tokio::time::timeout</code> to enforce strict time bounds on async operations.</li>
-            </ul>
+                <h3>Key Concepts</h3>
+                <ul>
+                    <li><strong>Never Use Blocking Sleep:</strong> <code>std::thread::sleep</code> blocks the underlying OS thread, freezing the Tokio worker. Always use <code>tokio::time::sleep</code>.</li>
+                    <li><strong>Async Sleep:</strong> Suspends the current task asynchronously for the specified duration, yielding the worker thread to other ready tasks.</li>
+                    <li><strong>Timeouts:</strong> Wrap any future with <code>tokio::time::timeout</code> to enforce strict time bounds on async operations.</li>
+                </ul>
 
-            <h3>Code Pattern</h3>
-            <pre><code>use tokio::time::{sleep, timeout, Duration};
+                <h3>Code Pattern</h3>
+                <pre><code>use tokio::time::{sleep, timeout, Duration};
 
 async fn slow_operation() -> &'static str {
     sleep(Duration::from_millis(200)).await;
@@ -279,23 +302,23 @@ async fn main() {
         Err(_) => println!("Operation timed out!"),
     }
 }</code></pre>
-        </section>
+            </section>
 
-        <!-- Concept 4 -->
-        <section id="concept-4" class="concept-card">
-            <div class="badge">tokio::sync</div>
-            <h2>4. Task Synchronization & Channels (`tokio::sync`)</h2>
-            <p>Communicating safely between concurrent asynchronous tasks without shared mutable state.</p>
+            <!-- Concept 4 -->
+            <section id="concept-4" class="concept-card">
+                <div class="badge">tokio::sync</div>
+                <h2>4. Task Synchronization & Channels (`tokio::sync`)</h2>
+                <p>Communicating safely between concurrent asynchronous tasks without shared mutable state.</p>
 
-            <h3>Key Concepts</h3>
-            <ul>
-                <li><strong>MPSC Channel (<code>tokio::sync::mpsc</code>):</strong> Multi-producer, single-consumer channel enabling multiple tasks to stream messages to a single receiver.</li>
-                <li><strong>Oneshot Channel (<code>tokio::sync::oneshot</code>):</strong> Transfers a single value from one sender to one receiver, ideal for request-response patterns.</li>
-                <li><strong>Channel Closing:</strong> Dropping all transmitter handles causes <code>rx.recv()</code> to return <code>None</code>, terminating message loops cleanly.</li>
-            </ul>
+                <h3>Key Concepts</h3>
+                <ul>
+                    <li><strong>MPSC Channel (<code>tokio::sync::mpsc</code>):</strong> Multi-producer, single-consumer channel enabling multiple tasks to stream messages to a single receiver.</li>
+                    <li><strong>Oneshot Channel (<code>tokio::sync::oneshot</code>):</strong> Transfers a single value from one sender to one receiver, ideal for request-response patterns.</li>
+                    <li><strong>Channel Closing:</strong> Dropping all transmitter handles causes <code>rx.recv()</code> to return <code>None</code>, terminating message loops cleanly.</li>
+                </ul>
 
-            <h3>Code Pattern</h3>
-            <pre><code>use tokio::sync::mpsc;
+                <h3>Code Pattern</h3>
+                <pre><code>use tokio::sync::mpsc;
 
 #[tokio::main]
 async fn main() {
@@ -312,23 +335,23 @@ async fn main() {
         println!("Received: {msg}");
     }
 }</code></pre>
-        </section>
+            </section>
 
-        <!-- Concept 5 -->
-        <section id="concept-5" class="concept-card">
-            <div class="badge">tokio::join</div>
-            <h2>5. Joining Multiple Futures (`tokio::join!`)</h2>
-            <p>Running multiple independent asynchronous operations concurrently on the current task and combining their results.</p>
+            <!-- Concept 5 -->
+            <section id="concept-5" class="concept-card">
+                <div class="badge">tokio::join</div>
+                <h2>5. Joining Multiple Futures (`tokio::join!`)</h2>
+                <p>Running multiple independent asynchronous operations concurrently on the current task and combining their results.</p>
 
-            <h3>Key Concepts</h3>
-            <ul>
-                <li><strong>Concurrent Execution:</strong> <code>tokio::join!</code> polls multiple futures concurrently on the same task without needing separate spawns.</li>
-                <li><strong>Tuple Return Value:</strong> Returns a tuple containing the resolved output of each future once all of them complete.</li>
-                <li><strong>All-Or-None Completion:</strong> Execution blocks on the <code>join!</code> macro until every provided future has resolved.</li>
-            </ul>
+                <h3>Key Concepts</h3>
+                <ul>
+                    <li><strong>Concurrent Execution:</strong> <code>tokio::join!</code> polls multiple futures concurrently on the same task without needing separate spawns.</li>
+                    <li><strong>Tuple Return Value:</strong> Returns a tuple containing the resolved output of each future once all of them complete.</li>
+                    <li><strong>All-Or-None Completion:</strong> Execution blocks on the <code>join!</code> macro until every provided future has resolved.</li>
+                </ul>
 
-            <h3>Code Pattern</h3>
-            <pre><code>async fn fetch_user() -> &'static str {
+                <h3>Code Pattern</h3>
+                <pre><code>async fn fetch_user() -> &'static str {
     "Alice"
 }
 
@@ -343,11 +366,315 @@ async fn main() {
     
     println!("User: {user}, Score: {score}");
 }</code></pre>
-        </section>
+            </section>
+        </div>
+
+        <!-- TAB 2: Reqwest -->
+        <div id="tab-reqwest" class="tab-panel">
+            <!-- Concept 1 -->
+            <section id="reqwest-1" class="concept-card">
+                <div class="badge">reqwest::Client</div>
+                <h2>1. The HTTP Client (`reqwest::Client`)</h2>
+                <p>The entry point for making HTTP requests. Reusing a <code>Client</code> instance pools connections automatically for maximum performance.</p>
+                
+                <h3>Key Concepts</h3>
+                <ul>
+                    <li><strong>Connection Pooling:</strong> A single <code>Client</code> maintains internal connection pools (keep-alive), avoiding TCP handshake overhead on repeated requests.</li>
+                    <li><strong>Configuration:</strong> Use <code>ClientBuilder</code> to set global timeouts, default headers, proxies, and redirect policies.</li>
+                    <li><strong>Thread-Safe & Cheap to Clone:</strong> <code>Client</code> is internally reference-counted (Arc-backed) and can be freely cloned and shared across async tasks.</li>
+                </ul>
+
+                <h3>Code Pattern</h3>
+                <pre><code>use reqwest::Client;
+
+#[tokio::main]
+async fn main() -> Result&lt;(), reqwest::Error&gt; {
+    <span class="comment">// Create a shared HTTP client</span>
+    let client = Client::new();
+
+    let res = client.get("https://httpbin.org/get").send().await?;
+    println!("Status: {}", res.status());
+
+    Ok(())
+}</code></pre>
+            </section>
+
+            <!-- Concept 2 -->
+            <section id="reqwest-2" class="concept-card">
+                <div class="badge">reqwest::get</div>
+                <h2>2. Simple GET Requests</h2>
+                <p>Fetching data from an HTTP endpoint using straightforward asynchronous GET methods for quick scripts or simple queries.</p>
+
+                <h3>Key Concepts</h3>
+                <ul>
+                    <li><strong>Convenience Function:</strong> <code>reqwest::get()</code> is a shorthand for quick one-off GET requests without creating a custom <code>Client</code>.</li>
+                    <li><strong>Response Handling:</strong> The <code>Response</code> object contains status code, headers, and methods to consume the body as text, bytes, or JSON.</li>
+                    <li><strong>Error Propagation:</strong> Network failures, DNS errors, or HTTP errors return a <code>reqwest::Error</code> which can be handled with the <code>?</code> operator.</li>
+                </ul>
+
+                <h3>Code Pattern</h3>
+                <pre><code>#[tokio::main]
+async fn main() -> Result&lt;(), reqwest::Error&gt; {
+    <span class="comment">// Perform a simple GET request</span>
+    let body = reqwest::get("https://httpbin.org/ip")
+        .await?
+        .text()
+        .await?;
+
+    println!("Response Body:\n{body}");
+    Ok(())
+}</code></pre>
+            </section>
+
+            <!-- Concept 3 -->
+            <section id="reqwest-3" class="concept-card">
+                <div class="badge">reqwest::json</div>
+                <h2>3. JSON Deserialization</h2>
+                <p>Automatically parsing JSON HTTP response bodies directly into strongly-typed Rust structs using Serde integration.</p>
+
+                <h3>Key Concepts</h3>
+                <ul>
+                    <li><strong><code>.json::<T>().await</code>:</strong> Consumes the response body and deserializes it directly into any type <code>T</code> that implements <code>serde::Deserialize</code>.</li>
+                    <li><strong>Type Safety:</strong> Replaces fragile dynamic JSON maps with robust, compile-time checked Rust structs.</li>
+                    <li><strong>Content-Type Validation:</strong> Reqwest automatically reads and handles JSON response text streams.</li>
+                </ul>
+
+                <h3>Code Pattern</h3>
+                <pre><code>use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
+struct Todo {
+    userId: u32,
+    id: u32,
+    title: String,
+    completed: bool,
+}
+
+#[tokio::main]
+async fn main() -> Result&lt;(), reqwest::Error&gt; {
+    let todo: Todo = reqwest::get("https://jsonplaceholder.typicode.com/todos/1")
+        .await?
+        .json()
+        .await?;
+
+    println!("Fetched Todo: {todo:?}");
+    Ok(())
+}</code></pre>
+            </section>
+
+            <!-- Concept 4 -->
+            <section id="reqwest-4" class="concept-card">
+                <div class="badge">reqwest::post</div>
+                <h2>4. POST Requests & JSON Payloads</h2>
+                <p>Sending data to remote APIs by attaching request bodies, custom headers, and query parameters.</p>
+
+                <h3>Key Concepts</h3>
+                <ul>
+                    <li><strong><code>.json(&body)</code>:</strong> Serializes any serializable Rust struct into JSON and automatically sets the <code>Content-Type: application/json</code> header.</li>
+                    <li><strong>Query Parameters:</strong> Use <code>.query(&[("key", "val")])</code> to append URL search parameters cleanly.</li>
+                    <li><strong>Custom Headers:</strong> Use <code>.header("Authorization", "Bearer token")</code> to attach authentication tokens.</li>
+                </ul>
+
+                <h3>Code Pattern</h3>
+                <pre><code>use serde::{Serialize, Deserialize};
+use reqwest::Client;
+
+#[derive(Serialize)]
+struct NewPost {
+    title: String,
+    body: String,
+    userId: u32,
+}
+
+#[derive(Deserialize, Debug)]
+struct PostResponse {
+    id: u32,
+}
+
+#[tokio::main]
+async fn main() -> Result&lt;(), reqwest::Error&gt; {
+    let client = Client::new();
+    let payload = NewPost {
+        title: "Reqwest in Rust".into(),
+        body: "Bite-sized async HTTP lessons.".into(),
+        userId: 1,
+    };
+
+    let res = client.post("https://jsonplaceholder.typicode.com/posts")
+        .json(&payload)
+        .send()
+        .await?
+        .json::<PostResponse>()
+        .await?;
+
+    println!("Created post with ID: {}", res.id);
+    Ok(())
+}</code></pre>
+            </section>
+        </div>
+
+        <!-- TAB 3: Serde -->
+        <div id="tab-serde" class="tab-panel">
+            <!-- Concept 1 -->
+            <section id="serde-1" class="concept-card">
+                <div class="badge">serde::derive</div>
+                <h2>1. Deriving `Serialize` & `Deserialize`</h2>
+                <p>Enabling automated conversion between Rust structs/enums and data formats like JSON using procedural macro derives.</p>
+                
+                <h3>Key Concepts</h3>
+                <ul>
+                    <li><strong><code>#[derive(Serialize, Deserialize)]</code>:</strong> Automatically generates serialization and deserialization logic at compile time without manual boilerplate.</li>
+                    <li><strong>Zero-Cost Abstraction:</strong> Serde generates optimized parsing code tailored to your struct layouts with minimal overhead.</li>
+                    <li><strong>Standard Formats:</strong> Data structures derived with Serde can be serialized into JSON, TOML, YAML, MessagePack, and dozens of other formats.</li>
+                </ul>
+
+                <h3>Code Pattern</h3>
+                <pre><code>use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+struct User {
+    username: String,
+    age: u8,
+    active: bool,
+}
+
+fn main() {
+    let user = User { username: "Alice".into(), age: 30, active: true };
+    
+    <span class="comment">// Serialize to JSON string</span>
+    let json = serde_json::to_string(&user).unwrap();
+    println!("JSON: {json}");
+
+    <span class="comment">// Deserialize back to User struct</span>
+    let parsed: User = serde_json::from_str(&json).unwrap();
+    println!("Parsed: {parsed:?}");
+}</code></pre>
+            </section>
+
+            <!-- Concept 2 -->
+            <section id="serde-2" class="concept-card">
+                <div class="badge">serde::rename</div>
+                <h2>2. Field Renaming & Aliases</h2>
+                <p>Handling API payloads whose naming conventions differ from standard Rust idioms (e.g. <code>snake_case</code> vs <code>camelCase</code>).</p>
+
+                <h3>Key Concepts</h3>
+                <ul>
+                    <li><strong><code>#[serde(rename = "...")]</code>:</strong> Renames an individual struct field to match external JSON property names.</li>
+                    <li><strong><code>#[serde(rename_all = "...")]</code>:</strong> Automatically applies naming transformations (<code>"camelCase"</code>, <code>"PascalCase"</code>, <code>"kebab-case"</code>) to all fields in a struct.</li>
+                    <li><strong>Keyword Escaping:</strong> Allows mapping external keys that clash with Rust reserved keywords (like <code>type</code> or <code>async</code>).</li>
+                </ul>
+
+                <h3>Code Pattern</h3>
+                <pre><code>use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+struct UserProfile {
+    user_id: u64,
+    first_name: String,
+    <span class="comment">// Manually override a specific field name</span>
+    #[serde(rename = "emailAddress")]
+    email: String,
+}
+
+fn main() {
+    let json = r#"{"userId": 42, "firstName": "Bob", "emailAddress": "bob@example.com"}"#;
+    let profile: UserProfile = serde_json::from_str(json).unwrap();
+    println!("{profile:?}");
+}</code></pre>
+            </section>
+
+            <!-- Concept 3 -->
+            <section id="serde-3" class="concept-card">
+                <div class="badge">serde::default</div>
+                <h2>3. Optional Fields & Defaults</h2>
+                <p>Gracefully handling missing JSON keys, optional properties, and fallback default values during deserialization.</p>
+
+                <h3>Key Concepts</h3>
+                <ul>
+                    <li><strong><code>Option&lt;T&gt;</code>:</strong> Deserializes missing or null JSON fields as <code>None</code> instead of returning a parsing error.</li>
+                    <li><strong><code>#[serde(default)]</code>:</strong> Populates missing fields using the type's implementation of <code>Default::default()</code>.</li>
+                    <li><strong>Custom Default Functions:</strong> Use <code>#[serde(default = "function_name")]</code> to specify custom fallback values.</li>
+                </ul>
+
+                <h3>Code Pattern</h3>
+                <pre><code>use serde::{Serialize, Deserialize};
+
+fn default_role() -> String {
+    "guest".to_string()
+}
+
+#[derive(Deserialize, Debug)]
+struct Settings {
+    theme: Option&lt;String&gt;,
+    #[serde(default = "default_role")]
+    role: String,
+    #[serde(default)]
+    notifications: bool,
+}
+
+fn main() {
+    let json = r#"{}"#; <span class="comment">// Empty JSON object</span>
+    let settings: Settings = serde_json::from_str(json).unwrap();
+    println!("{settings:?}"); <span class="comment">// role: "guest", notifications: false, theme: None</span>
+}</code></pre>
+            </section>
+
+            <!-- Concept 4 -->
+            <section id="serde-4" class="concept-card">
+                <div class="badge">serde::flatten</div>
+                <h2>4. Flattening & Custom Serialization</h2>
+                <p>Merging nested JSON structures or handling dynamic attributes without losing type safety.</p>
+
+                <h3>Key Concepts</h3>
+                <ul>
+                    <li><strong><code>#[serde(flatten)]</code>:</strong> Merges fields from a nested struct or extra HashMap directly into the parent JSON object level.</li>
+                    <li><strong><code>#[serde(skip)]</code>:</strong> Ignores specific fields during serialization and/or deserialization.</li>
+                    <li><strong>Custom Converters:</strong> Use <code>#[serde(with = "module")]</code> for custom serialization logic on specific fields (e.g. timestamps).</li>
+                </ul>
+
+                <h3>Code Pattern</h3>
+                <pre><code>use serde::{Serialize, Deserialize};
+use std::collections::HashMap;
+
+#[derive(Deserialize, Debug)]
+struct Event {
+    id: String,
+    <span class="comment">// Flatten remaining dynamic properties into a HashMap</span>
+    #[serde(flatten)]
+    extra: HashMap&lt;String, serde_json::Value&gt;,
+}
+
+fn main() {
+    let json = r#"{"id": "ev_123", "action": "click", "count": 5}"#;
+    let event: Event = serde_json::from_str(json).unwrap();
+    println!("{event:?}");
+}</code></pre>
+            </section>
+        </div>
 
         <footer>
-            <p>Tokio & Async Rust Lab &bull; Hosted on GitHub Pages</p>
+            <p>Async & Ecosystem Rust Lab &bull; Hosted on GitHub Pages</p>
         </footer>
     </div>
+
+    <script>
+        function switchTab(tabId) {
+            // Hide all panels
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            // Deactivate all buttons
+            document.querySelectorAll('#subject-tabs button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Activate target panel
+            document.getElementById('tab-' + tabId).classList.add('active');
+            // Activate corresponding button
+            event.currentTarget.classList.add('active');
+            // Scroll to top of content
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
 </body>
 </html>
